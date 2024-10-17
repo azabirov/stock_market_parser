@@ -49,7 +49,7 @@ Before setting up the project, ensure you have the following installed:
 If you haven't already, clone the project repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/stock-parser.git
+git clone https://github.com/quantify-team/dp.git
 cd stock-parser
 ```
 
@@ -368,13 +368,7 @@ Ensure that these files are located in a directory where the script's user has w
 
    - **Cause**: Incorrect import statement.
 
-   - Solution: Modify the import in 
-
-     ```
-     stock_parser.py
-     ```
-
-     :
+   - Solution: Modify the import in `stock_parser.py`:
 
      ```
      from grpc import StatusCode
