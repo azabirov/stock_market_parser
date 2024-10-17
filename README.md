@@ -80,10 +80,6 @@ python3 -m venv venv
 Ensure your packaging tools are up-to-date:
 
 ```
-bash
-
-
-Копировать код
 pip install --upgrade pip setuptools wheel
 ```
 
@@ -114,17 +110,13 @@ The project uses environment variables to manage sensitive information securely.
    In the project directory, create a `.env` file:
 
    ```
-   bash
-   
-   
-   Копировать код
    nano .env
    ```
 
 2. **Add Environment Variables:**
 
    ```
-   envКопировать кодAPI_TOKEN=your_actual_api_token
+   API_TOKEN=your_actual_api_token
    DB_HOST=localhost
    DB_NAME=quantify_moex_stocks
    DB_USER=quantify_system_account
@@ -137,10 +129,6 @@ The project uses environment variables to manage sensitive information securely.
 3. **Secure the `.env` File:**
 
    ```
-   bash
-   
-   
-   Копировать код
    chmod 600 .env
    ```
 
@@ -151,10 +139,6 @@ The project uses environment variables to manage sensitive information securely.
    Depending on your shell, edit `~/.bashrc` or `~/.bash_profile`:
 
    ```
-   bash
-   
-   
-   Копировать код
    nano ~/.bashrc
    ```
 
@@ -175,10 +159,6 @@ The project uses environment variables to manage sensitive information securely.
 3. **Save and Apply Changes:**
 
    ```
-   bash
-   
-   
-   Копировать код
    source ~/.bashrc
    ```
 
@@ -189,7 +169,7 @@ Ensure that your PostgreSQL database is set up with the necessary tables.
 #### Example SQL Schema
 
 ```
-sqlКопировать кодCREATE TABLE classic_stocks (
+CREATE TABLE classic_stocks (
     id SERIAL PRIMARY KEY,
     ticker VARCHAR(50),
     begin_time TIMESTAMP,
@@ -473,23 +453,13 @@ Ensure that these files are located in a directory where the script's user has w
 
 - **Virtual Environment Activation**: Always activate your virtual environment before running scripts.
 
-- Secure Your `.env` File
-
-  : Ensure that your 
-
-  ```
-  .env
-  ```
-
-   file is not accessible to unauthorized users.
+- Secure Your `.env` File: Ensure that your `.env` file is not accessible to unauthorized users.
 
   ```
   chmod 600 .env
   ```
 
-- Keep Dependencies Updated
-
-  : Regularly update your Python packages to benefit from security patches and improvements.
+- Keep Dependencies Updated: Regularly update your Python packages to benefit from security patches and improvements.
 
   ```
   pip install --upgrade pip setuptools wheel
