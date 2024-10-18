@@ -171,25 +171,25 @@ Ensure that your PostgreSQL database is set up with the necessary tables.
 ```
 CREATE TABLE classic_stocks (
     id SERIAL PRIMARY KEY,
-    ticker VARCHAR(50),
-    begin_time TIMESTAMP,
-    close_time TIMESTAMP,
-    open NUMERIC,
-    high NUMERIC,
-    low NUMERIC,
-    close NUMERIC,
+    ticker VARCHAR(20),
+    begin_time TIMESTAMPTZ,
+    close_time TIMESTAMPTZ,
+    open NUMERIC(12, 6),
+    high NUMERIC(12, 6),
+    low NUMERIC(12, 6),
+    close NUMERIC(12, 6),
     UNIQUE (ticker, begin_time)
 );
 
 CREATE TABLE weekend_stocks (
     id SERIAL PRIMARY KEY,
     ticker VARCHAR(50),
-    begin_time TIMESTAMP,
-    close_time TIMESTAMP,
-    open NUMERIC,
-    high NUMERIC,
-    low NUMERIC,
-    close NUMERIC,
+    begin_time TIMESTAMPTZ,
+    close_time TIMESTAMPTZ,
+    open NUMERIC(12, 6),
+    high NUMERIC(12, 6),
+    low NUMERIC(12, 6),
+    close NUMERIC(12, 6),
     UNIQUE (ticker, begin_time)
 );
 ```
@@ -306,8 +306,8 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 | --------------------- | ---------------------- | -------------------------- |
 | id                    | SERIAL                 | Primary key                |
 | ticker                | VARCHAR                | Stock ticker symbol        |
-| begin_time            | TIMESTAMP              | Start time of the candle   |
-| close_time            | TIMESTAMP              | End time of the candle     |
+| begin_time            | TIMESTAMPTZ            | Start time of the candle   |
+| close_time            | TIMESTAMPTZ            | End time of the candle     |
 | open                  | NUMERIC                | Opening price              |
 | high                  | NUMERIC                | Highest price              |
 | low                   | NUMERIC                | Lowest price               |
@@ -320,8 +320,8 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 | --------------------- | ---------------------- | -------------------------- |
 | id                    | SERIAL                 | Primary key                |
 | ticker                | VARCHAR                | Stock ticker symbol        |
-| begin_time            | TIMESTAMP              | Start time of the candle   |
-| close_time            | TIMESTAMP              | End time of the candle     |
+| begin_time            | TIMESTAMPTZ            | Start time of the candle   |
+| close_time            | TIMESTAMPTZ            | End time of the candle     |
 | open                  | NUMERIC                | Opening price              |
 | high                  | NUMERIC                | Highest price              |
 | low                   | NUMERIC                | Lowest price               |
