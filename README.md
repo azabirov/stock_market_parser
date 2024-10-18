@@ -12,12 +12,10 @@
 - [Database Schema](#database-schema)
 - [Logging](#logging)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
-The **Stock Parser Project** is a Python-based application designed to fetch stock data from the [Tinkoff Invest API](https://tinkoff.github.io/investAPI/) and store it in a PostgreSQL database. The project comprises two primary scripts:
+The stock market parser is a Python-based application designed to fetch stock data from the [Tinkoff Invest API](https://tinkoff.github.io/investAPI/) and store it in a PostgreSQL database. The project comprises two primary scripts located in the `src` directory:
 
 1. **`stock_parser.py`**: Continuously fetches and stores stock data.
 2. **`query_data.py`**: Allows users to query and display stored stock data.
@@ -50,14 +48,13 @@ If you haven't already, clone the project repository to your local machine:
 
 ```bash
 git clone https://github.com/quantify-team/dp.git
-cd stock-parser
 ```
 
 ### 2. Create a Virtual Environment
 
 It's recommended to use a virtual environment to manage dependencies:
 
-```
+```bash
 python3 -m venv venv
 ```
 
@@ -65,13 +62,13 @@ python3 -m venv venv
 
 - **Linux/macOS:**
 
-  ```
+  ```bash
   source venv/bin/activate
   ```
 
 - **Windows (Command Prompt):**
 
-  ```
+  ```cmd
   venv\Scripts\activate
   ```
 
@@ -79,7 +76,7 @@ python3 -m venv venv
 
 Ensure your packaging tools are up-to-date:
 
-```
+```bash
 pip install --upgrade pip setuptools wheel
 ```
 
@@ -87,14 +84,8 @@ pip install --upgrade pip setuptools wheel
 
 Install the required Python packages using `requirements.txt`:
 
-```
+```bash
 pip install -r requirements.txt
-```
-
-*If `requirements.txt` is not provided, you can install the necessary packages manually:*
-
-```
-pip install tinkoff-invest grpcio python-dotenv psycopg2-binary python-dateutil pytz tabulate
 ```
 
 ## Configuration
@@ -109,13 +100,13 @@ The project uses environment variables to manage sensitive information securely.
 
    In the project directory, create a `.env` file:
 
-   ```
+   ```bash
    nano .env
    ```
 
 2. **Add Environment Variables:**
 
-   ```
+   ```env
    API_TOKEN=your_actual_api_token
    DB_HOST=localhost
    DB_NAME=quantify_moex_stocks
@@ -128,7 +119,7 @@ The project uses environment variables to manage sensitive information securely.
 
 3. **Secure the `.env` File:**
 
-   ```
+   ```bash
    chmod 600 .env
    ```
 
@@ -138,17 +129,14 @@ The project uses environment variables to manage sensitive information securely.
 
    Depending on your shell, edit `~/.bashrc` or `~/.bash_profile`:
 
-   ```
+   ```bash
    nano ~/.bashrc
    ```
 
 2. **Add Export Statements:**
 
-   ```
-   # Tinkoff Invest API Token
-   export API_TOKEN="your_actual_api_token"
-   
-   # PostgreSQL Database Credentials
+   ```bash
+   export API_TOKEN="your_actual_tinkoff_api_token"
    export DB_HOST="localhost"
    export DB_NAME="quantify_moex_stocks"
    export DB_USER="quantify_system_account"
@@ -158,7 +146,7 @@ The project uses environment variables to manage sensitive information securely.
 
 3. **Save and Apply Changes:**
 
-   ```
+   ```bash
    source ~/.bashrc
    ```
 
@@ -168,7 +156,7 @@ Ensure that your PostgreSQL database is set up with the necessary tables.
 
 #### Example SQL Schema
 
-```
+```sql
 CREATE TABLE classic_stocks (
     id SERIAL PRIMARY KEY,
     ticker VARCHAR(20),
@@ -183,7 +171,7 @@ CREATE TABLE classic_stocks (
 
 CREATE TABLE weekend_stocks (
     id SERIAL PRIMARY KEY,
-    ticker VARCHAR(50),
+    ticker VARCHAR(20),
     begin_time TIMESTAMPTZ,
     close_time TIMESTAMPTZ,
     open NUMERIC(12, 6),
@@ -193,8 +181,6 @@ CREATE TABLE weekend_stocks (
     UNIQUE (ticker, begin_time)
 );
 ```
-
-*Execute the above SQL commands in your PostgreSQL database to create the required tables.*
 
 ## Usage
 
@@ -210,27 +196,27 @@ source venv/bin/activate
 
 #### 2. Run the Script Manually (For Testing)
 
-```
-python3 stock_parser.py
+```bash
+python3 src/stock_parser.py
 ```
 
 #### 3. Run the Script in the Background Using `nohup`
 
-```
-nohup python3 stock_parser.py > stock_parser_output.log 2>&1 &
+```bash
+source venv/bin/activate
+nohup python3 src/stock_parser.py &
+tail -f logs/stock_parser.log
 ```
 
 - Explanation:
   - **`nohup`**: Runs the command immune to hangups.
-  - **`>`**: Redirects standard output to `stock_parser_output.log`.
-  - **`2>&1`**: Redirects standard error to the same log file.
   - **`&`**: Runs the process in the background.
 
 #### 4. Monitor the Logs
 
-```
-tail -f stock_parser_output.log
-tail -f stock_parser_error.log
+```bash
+tail -f logs/stock_parser.log
+tail -f logs/stock_parser_error.log
 ```
 
 ### Querying the Database
@@ -241,20 +227,12 @@ The `query_data.py` script allows you to query and display stored stock data.
 
 If you're using a `.env` file, make sure it's loaded. Otherwise, ensure environment variables are exported.
 
-#### 2. Install Additional Dependency for Query Script
-
-The `query_data.py` script uses the `tabulate` library for formatted output. Ensure it's installed:
-
-```
-pip install tabulate
-```
-
-#### 3. Run the Query Script
+#### 2. Run the Query Script
 
 - **Using Command-Line Arguments:**
 
-  ```
-  python3 query_data.py --table classic_stocks --limit 5 --ticker AAPL --start_date 2024-01-01 --end_date 2024-12-31
+  ```bash
+  python3 src/query_data.py --table classic_stocks --limit 5 --ticker AAPL --start_date 2024-01-01 --end_date 2024-12-31
   ```
 
   **Arguments:**
@@ -269,13 +247,13 @@ pip install tabulate
 
   Simply run the script without arguments:
 
-  ```
-  python3 query_data.py
+  ```bash
+  python3 src/query_data.py
   ```
 
   You will be presented with an interactive menu to input your query preferences.
 
-#### 4. Example Output
+#### 3. Example Output
 
 ```
 === Stock Data Query Menu ===
@@ -334,8 +312,8 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 
 The project maintains two primary log files:
 
-- **`stock_parser.log`**: Contains detailed logs of the stock parser's operations.
-- **`stock_parser_error.log`**: Contains error logs for debugging purposes.
+`logs/stock_parser.log`: Contains detailed logs of the stock parser's operations.
+`logs/stock_parser_error.log`: Contains error logs for debugging purposes.
 
 Ensure that these files are located in a directory where the script's user has write permissions.
 
@@ -352,6 +330,8 @@ Ensure that these files are located in a directory where the script's user has w
 
 ## Troubleshooting
 
+Ensure correct permissions and installed dependencies.
+
 ### Common Issues
 
 1. **ModuleNotFoundError: No module named 'dotenv'**
@@ -364,28 +344,17 @@ Ensure that these files are located in a directory where the script's user has w
      pip install python-dotenv
      ```
 
-2. **ImportError: cannot import name 'StatusCode' from 'tinkoff.invest'**
 
-   - **Cause**: Incorrect import statement.
-
-   - Solution: Modify the import in `stock_parser.py`:
-
-     ```
-     from grpc import StatusCode
-     ```
-
-3. **Environment Variables Not Loaded**
+2. **Environment Variables Not Loaded**
 
    - **Cause**: Sourcing `/etc/environment` incorrectly or environment variables not set.
    - **Solution**: Use a `.env` file with `python-dotenv` or set variables via shell profiles.
 
-4. **Database Connection Errors**
+3. **Database Connection Errors**
 
    - **Cause**: Incorrect database credentials or PostgreSQL service not running.
 
-   - Solution
-
-     :
+   - Solution:
 
      - Verify credentials in the `.env` file.
 
@@ -395,14 +364,14 @@ Ensure that these files are located in a directory where the script's user has w
        sudo systemctl status postgresql
        ```
 
-5. **Permission Denied for Log Files**
+4. **Permission Denied for Log Files**
 
    - **Cause**: The user running the script does not have write permissions to the log files.
 
    - Solution:
 
-     ```
-     chmod 644 stock_parser.log stock_parser_error.log
+     ```bash
+     chmod 644 logs/stock_parser.log logs/stock_parser_error.log
      ```
 
 ### Steps to Resolve
@@ -411,7 +380,7 @@ Ensure that these files are located in a directory where the script's user has w
 
    Ensure all required packages are installed:
 
-   ```
+   ```bash
    pip list
    ```
 
@@ -419,7 +388,7 @@ Ensure that these files are located in a directory where the script's user has w
 
    Confirm that environment variables are set:
 
-   ```
+   ```bash
    echo $API_TOKEN
    echo $DB_HOST
    echo $DB_NAME
@@ -436,9 +405,9 @@ Ensure that these files are located in a directory where the script's user has w
 
    Execute the scripts manually to identify issues:
 
-   ```
-   python3 stock_parser.py
-   python3 query_data.py
+   ```bash
+   python3 src/stock_parser.py
+   python3 src/query_data.py
    ```
 
 ### Additional Tips
@@ -449,13 +418,13 @@ Ensure that these files are located in a directory where the script's user has w
 
 - Secure Your `.env` File: Ensure that your `.env` file is not accessible to unauthorized users.
 
-  ```
+  ```bash
   chmod 600 .env
   ```
 
 - Keep Dependencies Updated: Regularly update your Python packages to benefit from security patches and improvements.
 
-  ```
+  ```bash
   pip install --upgrade pip setuptools wheel
   pip list --outdated
   pip install --upgrade <package_name>
