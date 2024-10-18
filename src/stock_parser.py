@@ -23,6 +23,8 @@ import time
 # Logging Configuration
 # ---------------------------
 
+os.makedirs('logs', exist_ok=True) # Ensure the logs directory exists
+
 LOG_FILE = os.path.join('logs', 'stock_parser.log')
 ERROR_LOG_FILE = os.path.join('logs', 'stock_parser_error.log')
 
