@@ -11,6 +11,7 @@
   - [Querying the Database](#querying-the-database)
 - [Database Schema](#database-schema)
 - [Logging](#logging)
+- [Docker Setup](#docker-setup)
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
@@ -327,6 +328,68 @@ Ensure that these files are located in a directory where the script's user has w
 2024-10-16 10:00:02,000 - DEBUG - Number of candles fetched for AAPL: 1
 2024-10-16 10:00:02,500 - INFO - Stored candle data for AAPL in classic_stocks.
 ```
+## Docker Setup
+
+If you prefer to use Docker, you can run the project using the provided Dockerfile and docker-compose.yml file. This method ensures consistent environments across different systems.
+
+### Prerequisites for Docker Setup
+
+- Docker
+- Docker Compose
+
+### Steps to Run with Docker
+
+1. **Build and Start the Containers:**
+
+   In the project root directory, run:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+   This command will build the Docker image for the stock parser and start both the stock parser and the PostgreSQL database containers.
+
+2. **Verify the Containers are Running:**
+
+   In a new terminal window, you can check the status of your containers:
+
+   ```bash
+   docker-compose ps
+   ```
+
+   You should see two containers running: `stock-parser` and `stock-parser-db`.
+
+3. **Access Logs:**
+
+   To view the logs of the stock parser container:
+
+   ```bash
+   docker-compose logs stock-parser
+   ```
+
+   For real-time logs:
+
+   ```bash
+   docker-compose logs -f stock-parser
+   ```
+
+4. **Stop the Containers:**
+
+   When you're done, you can stop the containers by pressing `Ctrl+C` in the terminal where you ran `docker-compose up`, or by running:
+
+   ```bash
+   docker-compose down
+   ```
+
+   in a new terminal window.
+
+### Notes
+
+- The stock parser container is configured to restart automatically if it crashes.
+- The PostgreSQL data is persisted in a Docker volume, so your data will be preserved even if you stop and remove the containers.
+- Environment variables are loaded from the `.env` file in the project root. Make sure this file is properly configured before running the containers.
+
+By using Docker, you ensure that the application runs in a consistent environment, regardless of your local setup. This can help avoid issues related to different Python versions or system configurations.
 
 ## Troubleshooting
 

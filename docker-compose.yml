@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  stock-parser:
+    build: .
+    container_name: stock-parser
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./logs:/app/logs
+    restart: always
+    # Optional: Use a wait script to ensure the DB is ready
+    command: ["./src/wait-for-it.sh", "db:5432", "--", "python", "src/stock_parser.py"]
+
+  db:
+    image: postgres:13
+    container_name: stock-parser-db
+    environment:
+      - POSTGRES_DB=quantify_moex_stocks
+      - POSTGRES_USER=quantify_system_account
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Consider removing if not needed externally
+    restart: always
+
+volumes:
+  db_data:
