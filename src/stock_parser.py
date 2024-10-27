@@ -98,12 +98,13 @@ def get_db_connection():
 # Function to Store Candle Data
 # ---------------------------
 
-def store_candle_in_db(candle, ticker, table_name):
+def store_candle_in_db(candle, figi, ticker, table_name):
     """
     Stores a single candle's data into the specified database table.
 
     Args:
         candle: The candle data fetched from the API.
+        figi (str): The FIGI of the stock.
         ticker (str): The stock ticker symbol.
         table_name (str): The target database table name.
 
@@ -138,7 +139,7 @@ def store_candle_in_db(candle, ticker, table_name):
         cursor.execute(
             query,
             (
-                ticker,
+                ticker,  # Use ticker instead of figi
                 begin_time,
                 close_time,
                 candle.open.units + candle.open.nano / 1e9,
@@ -162,10 +163,10 @@ def store_candle_in_db(candle, ticker, table_name):
 
 def get_stock_lists():
     """
-    Retrieves lists of classic and weekend stock FIGIs from the Tinkoff API.
+    Retrieves lists of classic and weekend stock FIGIs and tickers from the Tinkoff API.
 
     Returns:
-        tuple: Two lists containing FIGIs for classic and weekend stocks respectively.
+        tuple: Two dictionaries containing FIGI to ticker mappings for classic and weekend stocks respectively.
     """
     try:
         with Client(API_TOKEN) as client:
@@ -176,18 +177,18 @@ def get_stock_lists():
                 logging.debug(f"Instrument: {instrument}")
 
             # Filter based on trading status
-            classic_stocks = [
-                instrument.figi for instrument in instruments.instruments
+            classic_stocks = {
+                instrument.figi: instrument.ticker for instrument in instruments.instruments
                 if instrument.trading_status in [
                     SecurityTradingStatus.SECURITY_TRADING_STATUS_NORMAL_TRADING,
-                    SecurityTradingStatus.SECURITY_TRADING_STATUS_BREAK_IN_TRADING
+                    SecurityTradingStatus.SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING
                 ]
-            ]
+            }
 
-            weekend_stocks = [
-                instrument.figi for instrument in instruments.instruments
+            weekend_stocks = {
+                instrument.figi: instrument.ticker for instrument in instruments.instruments
                 if getattr(instrument, 'weekend_flag', False)  # Use getattr to avoid AttributeError
-            ]
+            }
 
             logging.info(f"Retrieved {len(classic_stocks)} classic and {len(weekend_stocks)} weekend stocks.")
             return classic_stocks, weekend_stocks
@@ -195,18 +196,18 @@ def get_stock_lists():
     except Exception as e:
         logging.error(f"Failed to retrieve stock lists: {e}")
         logging.error(traceback.format_exc())
-        return [], []
+        return {}, {}
 
 # ---------------------------
 # Function to Fetch and Store Candles
 # ---------------------------
 
-def fetch_and_store(tickers, table_name, interval):
+def fetch_and_store(stock_dict, table_name, interval):
     """
-    Fetches candles for the given tickers and stores them in the database.
+    Fetches candles for the given stocks and stores them in the database.
 
     Args:
-        tickers (list): List of stock FIGIs to fetch candles for.
+        stock_dict (dict): Dictionary mapping FIGIs to tickers.
         table_name (str): Target database table name.
         interval: Interval between candles.
 
@@ -215,7 +216,7 @@ def fetch_and_store(tickers, table_name, interval):
     """
     try:
         with Client(API_TOKEN) as client:
-            for ticker in tickers:
+            for figi, ticker in stock_dict.items():
                 now = datetime.now(tz=MOSCOW_TZ)
                 from_time = now - timedelta(minutes=10)  # Fetch candles from the last 10 minutes
 
@@ -223,12 +224,12 @@ def fetch_and_store(tickers, table_name, interval):
                 from_time_iso = from_time.isoformat()
                 now_iso = now.isoformat()
 
-                logging.info(f"Fetching candles for {ticker} from {from_time_iso} to {now_iso}")
+                logging.info(f"Fetching candles for {ticker} (FIGI: {figi}) from {from_time_iso} to {now_iso}")
 
                 try:
                     # Pass datetime objects directly to get_candles
                     candles = client.market_data.get_candles(
-                        figi=ticker,
+                        figi=figi,
                         from_=from_time,
                         to=now,
                         interval=interval
@@ -238,7 +239,7 @@ def fetch_and_store(tickers, table_name, interval):
 
                     for candle in candles:
                         logging.debug(f"Processing candle: {candle}")
-                        store_candle_in_db(candle, ticker, table_name)
+                        store_candle_in_db(candle, figi, ticker, table_name)
                         logging.info(f"Candle data: {candle}")
 
                     # Optional: Sleep after each successful request to avoid hitting rate limits
@@ -252,7 +253,7 @@ def fetch_and_store(tickers, table_name, interval):
                         # Retry the same ticker after sleeping
                         try:
                             candles = client.market_data.get_candles(
-                                figi=ticker,
+                                figi=figi,
                                 from_=from_time,
                                 to=now,
                                 interval=interval
@@ -262,7 +263,7 @@ def fetch_and_store(tickers, table_name, interval):
 
                             for candle in candles:
                                 logging.debug(f"Processing candle: {candle}")
-                                store_candle_in_db(candle, ticker, table_name)
+                                store_candle_in_db(candle, figi, ticker, table_name)
                                 logging.info(f"Candle data: {candle}")
 
                         except RequestError as re_retry:
@@ -293,15 +294,12 @@ async def scheduler():
     while True:
         try:
             now = datetime.now(tz=MOSCOW_TZ)
-            weekday = now.weekday()
-            hour = now.hour
-
             classic_stocks, weekend_stocks = get_stock_lists()
 
-            if weekday < 5 and 10 <= hour < 23:
+            if now.weekday() < 5:  # Monday to Friday
                 fetch_and_store(classic_stocks, 'classic_stocks', CandleInterval.CANDLE_INTERVAL_10_MIN)
 
-            if 10 <= hour < 23:
+            if 10 <= now.hour < 23:
                 fetch_and_store(weekend_stocks, 'weekend_stocks', CandleInterval.CANDLE_INTERVAL_10_MIN)
 
             # Calculate sleep time until next 10-minute interval
