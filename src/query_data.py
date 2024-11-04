@@ -38,18 +38,23 @@ def get_db_connection():
 def query_table(conn, table, limit, ticker=None, start_date=None, end_date=None):
     """
     Executes a query on the specified table with optional filters and displays the results.
-
-    Args:
-        conn: Database connection object.
-        table (str): Name of the table to query.
-        limit (int): Number of records to fetch.
-        ticker (str, optional): Ticker symbol to filter by.
-        start_date (datetime, optional): Start date for filtering records.
-        end_date (datetime, optional): End date for filtering records.
     """
     try:
         cursor = conn.cursor()
-        query = f"SELECT * FROM {table}"
+        
+        # Select specific columns in a consistent order
+        query = """
+            SELECT 
+                ticker,
+                begin_time,
+                close_time,
+                open,
+                high,
+                low,
+                close
+            FROM {}
+        """.format(table)
+        
         conditions = []
         params = []
 
@@ -66,17 +71,29 @@ def query_table(conn, table, limit, ticker=None, start_date=None, end_date=None)
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         
-        query += f" ORDER BY begin_time DESC LIMIT %s;"
+        query += " ORDER BY begin_time DESC LIMIT %s;"
         params.append(limit)
 
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
-        columns = [desc[0] for desc in cursor.description]
+        
+        # Define consistent column headers
+        columns = ['Ticker', 'Begin Time', 'Close Time', 'Open', 'High', 'Low', 'Close']
 
         if rows:
-            print(tabulate(rows, headers=columns, tablefmt="psql"))
+            # Format datetime objects for better readability
+            formatted_rows = []
+            for row in rows:
+                formatted_row = list(row)
+                formatted_row[1] = row[1].strftime('%Y-%m-%d %H:%M:%S')
+                formatted_row[2] = row[2].strftime('%Y-%m-%d %H:%M:%S')
+                formatted_rows.append(formatted_row)
+            
+            print(f"\nQuerying {table}:")
+            print(tabulate(formatted_rows, headers=columns, tablefmt="psql", floatfmt=".6f"))
+            print(f"\nTotal records: {len(rows)}")
         else:
-            print("No records found with the specified criteria.")
+            print("\nNo records found with the specified criteria.")
 
         cursor.close()
     except Exception as e:
@@ -94,9 +111,9 @@ def parse_arguments():
     parser.add_argument(
         '-t', '--table',
         type=str,
-        choices=['classic_stocks', 'weekend_stocks'],
+        choices=['classic_stocks', 'weekend_stocks', 'classic_stocks_hourly', 'weekend_stocks_hourly'],
         required=True,
-        help="Specify the table to query: 'classic_stocks' or 'weekend_stocks'."
+        help="Specify the table to query: classic_stocks, weekend_stocks, classic_stocks_hourly, or weekend_stocks_hourly"
     )
     parser.add_argument(
         '-l', '--limit',
@@ -145,16 +162,22 @@ def interactive_menu():
     Presents an interactive menu to the user for querying data without command-line arguments.
     """
     print("=== Stock Data Query Menu ===")
-    print("1. Query Classic Stocks")
-    print("2. Query Weekend Stocks")
-    print("3. Exit")
-    choice = input("Enter your choice (1-3): ")
+    print("1. Query Classic Stocks (10-min intervals)")
+    print("2. Query Weekend Stocks (10-min intervals)")
+    print("3. Query Classic Stocks (Hourly)")
+    print("4. Query Weekend Stocks (Hourly)")
+    print("5. Exit")
+    choice = input("Enter your choice (1-5): ")
 
     if choice == '1':
         table = 'classic_stocks'
     elif choice == '2':
         table = 'weekend_stocks'
     elif choice == '3':
+        table = 'classic_stocks_hourly'
+    elif choice == '4':
+        table = 'weekend_stocks_hourly'
+    elif choice == '5':
         print("Exiting the program.")
         exit(0)
     else:

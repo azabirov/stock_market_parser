@@ -8,6 +8,7 @@
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Running the Stock Parser](#running-the-stock-parser)
+  - [Running the Hourly Stock Parser](#running-the-hourly-stock-parser)
   - [Querying the Database](#querying-the-database)
 - [Database Schema](#database-schema)
 - [Logging](#logging)
@@ -16,10 +17,11 @@
 
 ## Overview
 
-The stock market parser is a Python-based application designed to fetch stock data from the [Tinkoff Invest API](https://tinkoff.github.io/investAPI/) and store it in a PostgreSQL database. The project comprises two primary scripts located in the `src` directory:
+The stock market parser is a Python-based application designed to fetch stock data from the [Tinkoff Invest API](https://tinkoff.github.io/investAPI/) and store it in a PostgreSQL database. The project comprises three primary scripts located in the `src` directory:
 
 1. **`stock_parser.py`**: Continuously fetches and stores stock data.
-2. **`query_data.py`**: Allows users to query and display stored stock data.
+2. **`stock_parser_hourly.py`**: Fetches and stores hourly stock data.
+3. **`query_data.py`**: Allows users to query and display stored stock data.
 
 By leveraging a virtual environment and environment variables for configuration, the project ensures secure and manageable operations.
 
@@ -181,6 +183,18 @@ CREATE TABLE weekend_stocks (
     close NUMERIC(12, 6),
     UNIQUE (ticker, begin_time)
 );
+
+CREATE TABLE hourly_stocks (
+    id SERIAL PRIMARY KEY,
+    ticker VARCHAR(20),
+    begin_time TIMESTAMPTZ,
+    close_time TIMESTAMPTZ,
+    open NUMERIC(12, 6),
+    high NUMERIC(12, 6),
+    low NUMERIC(12, 6),
+    close NUMERIC(12, 6),
+    UNIQUE (ticker, begin_time)
+);
 ```
 
 ## Usage
@@ -218,6 +232,37 @@ tail -f logs/stock_parser.log
 ```bash
 tail -f logs/stock_parser.log
 tail -f logs/stock_parser_error.log
+```
+
+### Running the Hourly Stock Parser
+
+The `stock_parser_hourly.py` script fetches hourly stock data and stores it in the PostgreSQL database. This is useful for analyzing longer-term trends with less granular data.
+
+#### 1. Activate the Virtual Environment
+
+```bash
+source venv/bin/activate
+```
+
+#### 2. Run the Script Manually
+
+```bash
+python3 src/stock_parser_hourly.py
+```
+
+#### 3. Run the Script in the Background Using `nohup`
+
+```bash
+source venv/bin/activate
+nohup python3 src/stock_parser_hourly.py &
+tail -f logs/stock_parser_hourly.log
+```
+
+#### 4. Monitor the Hourly Parser Logs
+
+```bash
+tail -f logs/stock_parser_hourly.log
+tail -f logs/stock_parser_hourly_error.log
 ```
 
 ### Querying the Database
@@ -294,6 +339,20 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 | **Unique Constraint** | `(ticker, begin_time)` | Prevents duplicate entries |
 
 ### `weekend_stocks` Table
+
+| Column                | Data Type              | Description                |
+| --------------------- | ---------------------- | -------------------------- |
+| id                    | SERIAL                 | Primary key                |
+| ticker                | VARCHAR                | Stock ticker symbol        |
+| begin_time            | TIMESTAMPTZ            | Start time of the candle   |
+| close_time            | TIMESTAMPTZ            | End time of the candle     |
+| open                  | NUMERIC                | Opening price              |
+| high                  | NUMERIC                | Highest price              |
+| low                   | NUMERIC                | Lowest price               |
+| close                 | NUMERIC                | Closing price              |
+| **Unique Constraint** | `(ticker, begin_time)` | Prevents duplicate entries |
+
+### `hourly_stocks` Table
 
 | Column                | Data Type              | Description                |
 | --------------------- | ---------------------- | -------------------------- |
