@@ -184,7 +184,19 @@ CREATE TABLE weekend_stocks (
     UNIQUE (ticker, begin_time)
 );
 
-CREATE TABLE hourly_stocks (
+CREATE TABLE classic_stocks_hourly (
+    id SERIAL PRIMARY KEY,
+    ticker VARCHAR(20),
+    begin_time TIMESTAMPTZ,
+    close_time TIMESTAMPTZ,
+    open NUMERIC(12, 6),
+    high NUMERIC(12, 6),
+    low NUMERIC(12, 6),
+    close NUMERIC(12, 6),
+    UNIQUE (ticker, begin_time)
+);
+
+CREATE TABLE weekend_stocks_hourly (
     id SERIAL PRIMARY KEY,
     ticker VARCHAR(20),
     begin_time TIMESTAMPTZ,
@@ -352,7 +364,7 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 | close                 | NUMERIC                | Closing price              |
 | **Unique Constraint** | `(ticker, begin_time)` | Prevents duplicate entries |
 
-### `hourly_stocks` Table
+### `classic_stocks_hourly` Table
 
 | Column                | Data Type              | Description                |
 | --------------------- | ---------------------- | -------------------------- |
@@ -362,7 +374,21 @@ Enter end date (YYYY-MM-DD) to filter (leave blank for no filter): 2024-12-31
 | close_time            | TIMESTAMPTZ            | End time of the candle     |
 | open                  | NUMERIC                | Opening price              |
 | high                  | NUMERIC                | Highest price              |
-| low                   | NUMERIC                | Lowest price               |
+| low                   | NUMERIC                | Lowest price              |
+| close                 | NUMERIC                | Closing price              |
+| **Unique Constraint** | `(ticker, begin_time)` | Prevents duplicate entries |
+
+### `weekend_stocks_hourly` Table
+
+| Column                | Data Type              | Description                |
+| --------------------- | ---------------------- | -------------------------- |
+| id                    | SERIAL                 | Primary key                |
+| ticker                | VARCHAR                | Stock ticker symbol        |
+| begin_time            | TIMESTAMPTZ            | Start time of the candle   |
+| close_time            | TIMESTAMPTZ            | End time of the candle     |
+| open                  | NUMERIC                | Opening price              |
+| high                  | NUMERIC                | Highest price              |
+| low                   | NUMERIC                | Lowest price              |
 | close                 | NUMERIC                | Closing price              |
 | **Unique Constraint** | `(ticker, begin_time)` | Prevents duplicate entries |
 
