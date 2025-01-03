@@ -50,7 +50,7 @@ Before setting up the project, ensure you have the following installed:
 If you haven't already, clone the project repository to your local machine:
 
 ```bash
-git clone https://github.com/quantify-team/dp.git
+git clone https://github.com/azabirov/stock_market_parser
 ```
 
 ### 2. Create a Virtual Environment
